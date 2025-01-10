@@ -1,8 +1,2 @@
 docker pull apache/superset
-
 docker run -d --name demo -p 8088:8088 -e SUPERSET_SECRET_KEY=something-secret-key -e ADMIN_USERNAME=admin -e ADMIN_PASSWORD=admin apache/superset:latest
-
-environment:
-        - ADMIN_USERNAME=admin
-        - ADMIN_EMAIL=admin@superset.com
-        - ADMIN_PASSWORD=admin
