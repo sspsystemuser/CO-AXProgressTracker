@@ -1,0 +1,296 @@
+#For CO_AX Dashboard All companies of SSP Mother board Progress Status chart 
+SELECT checklist_name AS checklist_name,
+       card_name AS card_name,
+       SUM(CASE
+               WHEN status='complete' THEN 1
+               ELSE 0
+           END) AS "Done",
+       SUM(CASE
+               WHEN status='incomplete' THEN 1
+               ELSE 0
+           END) AS "Pending"
+FROM public.card_status_view
+GROUP BY checklist_name,
+         card_name
+ORDER BY "Done" DESC
+LIMIT 10000;
+
+===========================================================================================================================1
+#FOR REDINESS DASHBOARD
+#For all COMPANIES READINESS RATIO chart filtering by checkist name and board_list_name 
+SELECT card_name AS card_name,
+       AVG((100 * completed_checkitems)/total_checkitems) AS "Readiness (%)"
+FROM public.card_readiness_view
+WHERE board_list_name IN ('Incubate')
+GROUP BY card_name
+ORDER BY "Readiness (%)" DESC
+LIMIT 1000;
+
+==============================================================================================================================2
+
+#For companies STAGE READINESS LEVEL chart filtered by selected one company name, checklist name
+
+SELECT checklist_name AS checklist_name,
+       card_name AS card_name,
+       sum(CASE
+               WHEN status='complete' THEN 1
+               ELSE 0
+           END) AS "Completed"
+FROM public.card_checklist_view
+GROUP BY checklist_name,
+         card_name
+ORDER BY "Completed" DESC
+LIMIT 10000;
+
+===After selecting one company==========
+SELECT checklist_name AS checklist_name,
+       card_name AS card_name,
+       sum(CASE
+               WHEN status='complete' THEN 1
+               ELSE 0
+           END) AS "Completed"
+FROM public.card_checklist_view
+WHERE card_name IN ('Mabel')
+GROUP BY checklist_name,
+         card_name
+ORDER BY "Completed" DESC
+LIMIT 10000;
+
+=================================================================================================================================3
+
+# For all companies STAGE READINESS COMPARE charts 
+SELECT checklist_name AS checklist_name,
+       sum(CASE
+               WHEN status='complete' THEN 1
+               ELSE 0
+           END) AS "Completed"
+FROM public.card_checklist_view
+WHERE board_list_name = 'Incubate'
+GROUP BY checklist_name
+ORDER BY "Completed" DESC
+LIMIT 10000;
+
+=====After seleting any one company query ========
+SELECT checklist_name AS checklist_name,
+       sum(CASE
+               WHEN status='complete' THEN 1
+               ELSE 0
+           END) AS "Completed"
+FROM public.card_checklist_view
+WHERE card_name IN ('Mabel')
+  AND board_list_name = 'Incubate'
+GROUP BY checklist_name
+ORDER BY "Completed" DESC
+LIMIT 10000;
+
+==================================================================================================================================4
+
+#For PROGRESS VELOCITY - OVER ALL  CHART of given company
+SELECT DATE_TRUNC('day', statedate) AS statedate,
+       max(completed_card) AS "MAX(completed_card)"
+FROM public.card_completion_view
+GROUP BY DATE_TRUNC('day', statedate)
+ORDER BY "MAX(completed_card)" DESC
+LIMIT 10000;
+
+===After selecting one company========================
+SELECT DATE_TRUNC('day', statedate) AS statedate,
+       max(completed_card) AS "MAX(completed_card)"
+FROM public.card_completion_view
+WHERE card_name IN ('Mabel')
+GROUP BY DATE_TRUNC('day', statedate)
+ORDER BY "MAX(completed_card)" DESC
+LIMIT 10000;
+
+==================================================================================================================================5
+# For PROGRESS VELOCITY STAGE WISE
+
+SELECT DATE_TRUNC('day', statedate) AS statedate,
+       checklist_name AS checklist_name,
+       max(completed_checklist) AS "MAX(completed_checklist)"
+FROM public.card_completion_view
+GROUP BY DATE_TRUNC('day', statedate),
+         checklist_name
+ORDER BY "MAX(completed_checklist)" DESC
+LIMIT 10000;
+
+=========After selecting one company===========
+SELECT DATE_TRUNC('day', statedate) AS statedate,
+       checklist_name AS checklist_name,
+       max(completed_checklist) AS "MAX(completed_checklist)"
+FROM public.card_completion_view
+WHERE card_name IN ('Mabel')
+GROUP BY DATE_TRUNC('day', statedate),
+         checklist_name
+ORDER BY "MAX(completed_checklist)" DESC
+LIMIT 10000;
+
+===============================================================================================================================6
+# FOR PROGRESS VELOCITY - ALL COMPANY
+
+SELECT DATE_TRUNC('week', statedate) AS statedate,
+       card_name AS card_name,
+       max(completed_card) AS "MAX(Velocity)"
+FROM public.card_completion_view
+WHERE list_name = 'Incubate'
+GROUP BY DATE_TRUNC('week', statedate),
+         card_name
+ORDER BY "MAX(Velocity)" DESC
+LIMIT 10000;
+
+=========================================================================================================================7
+# For COMPANIES PROGRESS TIMEFRAME
+
+SELECT card_name AS card_name,
+       checklist_name AS checklist_name,
+       checkitem_name AS checkitem_name,
+       max(completed_card) AS "Task Done",
+       min(statedate) AS "Date"
+FROM public.card_completion_view
+WHERE list_name = 'Incubate'
+GROUP BY card_name,
+         checklist_name,
+         checkitem_name
+ORDER BY "Task Done" DESC
+LIMIT 1000;
+
+===After selecting one company===============
+SELECT card_name AS card_name,
+       checklist_name AS checklist_name,
+       checkitem_name AS checkitem_name,
+       max(completed_card) AS "Task Done",
+       min(statedate) AS "Date"
+FROM public.card_completion_view
+WHERE card_name IN ('Mabel')
+  AND list_name = 'Incubate'
+GROUP BY card_name,
+         checklist_name,
+         checkitem_name
+ORDER BY "Task Done" DESC
+LIMIT 1000;
+
+==================================================18-10-2024=================================
+#For Company Board chart
+SELECT company_name AS company_name,
+       count AS count
+FROM
+  (SELECT company_name AS company_name,
+          COUNT(card_name) AS count
+   FROM public.ccard_readiness_view
+   GROUP BY company_name
+   ORDER BY count DESC
+   LIMIT 1000) AS virtual_table
+LIMIT 1000;
+
+=========================================================
+# Company Movement TIMEFRAME
+SELECT card_name AS card_name,
+       from_list_name AS from_list_name,
+       to_list_name AS to_list_name,
+       total_moved AS total_moved,
+       DATE_TRUNC('day', date_moved) AS date_moved
+FROM public.ccard_movement_view
+GROUP BY card_name,
+         from_list_name,
+         to_list_name,
+         total_moved,
+         DATE_TRUNC('day', date_moved)
+LIMIT 1000;
+
+# after selcting one company like Mabel
+SELECT card_name AS card_name,
+       from_list_name AS from_list_name,
+       to_list_name AS to_list_name,
+       total_moved AS total_moved,
+       DATE_TRUNC('day', date_moved) AS date_moved
+FROM public.ccard_movement_view
+WHERE company_name IN ('Mabel')
+GROUP BY card_name,
+         from_list_name,
+         to_list_name,
+         total_moved,
+         DATE_TRUNC('day', date_moved)
+LIMIT 1000;
+
+=====================================================
+SELECT DATE_TRUNC('month', date_moved) as date_moved,
+       COUNT(*) AS count
+from ccard_movement_view
+where date_moved::date >= date '2023-01-01' and date_moved::date < date '2024-01-01'
+GROUP BY DATE_TRUNC('month', date_moved)
+LIMIT 50000;
+
+SELECT DATE_TRUNC('month', date_moved) AS date_moved,
+       COUNT(*) AS count
+FROM public.ccard_movement_view
+WHERE date_moved >= TO_TIMESTAMP('2023-10-18 00:00:00.000000', 'YYYY-MM-DD HH24:MI:SS.US')
+  AND date_moved < TO_TIMESTAMP('2024-10-18 00:00:00.000000', 'YYYY-MM-DD HH24:MI:SS.US')
+GROUP BY DATE_TRUNC('month', date_moved)
+LIMIT 50000;
+
+SELECT DATE_TRUNC('month', date_moved) AS date_moved,
+       COUNT(*) AS count
+FROM public.ccard_movement_view
+WHERE company_name IN ('Mabel')
+  AND date_moved >= TO_TIMESTAMP('2023-10-18 00:00:00.000000', 'YYYY-MM-DD HH24:MI:SS.US')
+  AND date_moved < TO_TIMESTAMP('2024-10-18 00:00:00.000000', 'YYYY-MM-DD HH24:MI:SS.US')
+GROUP BY DATE_TRUNC('month', date_moved)
+LIMIT 50000;
+
+===========================04/11/2024=================================
+For Checklist Progress Chart
+
+SELECT sum(previous_quarter_3) AS "3rd Previous",
+       sum(previous_quarter_2) AS "2nd Previous",
+       sum(previous_quarter) AS "Previous",
+       sum(current_quarter) AS "Current"
+FROM public.card_quarterly_progress_view
+WHERE list_name IN ('Incubate')
+LIMIT 50000;
+
+
+SELECT checklist_name AS checklist_name,
+       sum(previous_quarter_3) AS "3rd Previous",
+       sum(previous_quarter_2) AS "2nd Previous",
+       sum(previous_quarter) AS "Previous",
+       sum(current_quarter) AS "Current"
+FROM public.card_quarterly_progress_view
+WHERE list_name IN ('Incubate')
+GROUP BY checklist_name
+ORDER BY "3rd Previous" DESC
+LIMIT 1000;
+
+=================================
+Company Progress Chart
+SELECT card_name AS card_name,
+       sum(previous_quarter_3) AS "Q1",
+       sum(previous_quarter_2) AS "Q2",
+       sum(previous_quarter) AS "Q3",
+       sum(current_quarter) AS "Q4"
+FROM public.card_quarterly_progress_view
+WHERE list_name IN ('Incubate')
+GROUP BY card_name
+ORDER BY "Q4" DESC
+LIMIT 1000;
+
+
+SELECT sum(previous_quarter_3) AS "Q1",
+       sum(previous_quarter_2) AS "Q2",
+       sum(previous_quarter) AS "Q3",
+       sum(current_quarter) AS "Q4"
+FROM public.card_quarterly_progress_view
+WHERE list_name IN ('Incubate')
+LIMIT 50000;
+
+--------------------------------------
+For Quartterly progress compare
+SELECT DATE_TRUNC('month', quarter_date) AS quarter_date,
+       sum(previous_quarter_3) AS "Q1",
+       sum(previous_quarter_2) AS "Q2",
+       sum(previous_quarter) AS "Q3",
+       sum(current_quarter) AS "Q4"
+FROM public.card_quarterly_progress_view
+WHERE list_name IN ('Incubate')
+GROUP BY DATE_TRUNC('month', quarter_date)
+ORDER BY "Q1" DESC
+LIMIT 10000;

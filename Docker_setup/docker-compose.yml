@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: trello-db
+    image: postgres:16.4
+    user: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5435:5432'
+    volumes:
+      - trello_data:/var/lib/postgresql/data
+      - ./backup/trello-db-dump.sql:/docker-entrypoint-initdb.d/backup.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d postgres -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bridge
+
+  app:
+    container_name: dataextraction-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - TRELLO_API_TOKEN=ATTA20a016cb746108b3c4e6bbc0bd5cd88d7f8b7ca58ea59655782df8fbda689a438E397AFB
+      - TRELLO_API_KEY=16adcba3e4f025a47f0db82116772a7b      
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - bridge
+      
+networks:
+  bridge:
+    driver: bridge
+
+volumes:
+  trello_data:

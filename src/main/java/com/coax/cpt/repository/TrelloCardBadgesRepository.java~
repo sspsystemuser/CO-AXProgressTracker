@@ -1,0 +1,2 @@
+package com.coax.cpt.repository;public interface TrelloCardBadgesRepository {
+}
